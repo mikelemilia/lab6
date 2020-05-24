@@ -1,5 +1,6 @@
 
 using namespace cv;
+using namespace std;
 
 class objectDetection {
 
@@ -8,17 +9,17 @@ public:
 	objectDetection(); //constructor 
 
 	//Load images from the pattern and returns a vector of Mat with input images
-	//std::vector<Mat> loadImages();
+	//vector<Mat> loadImages();
 
 
 	//Perform feature detection with SIFT algorithm
 	//A vector of keypoints is returned
-	Mat SIFTFeatures(Mat image);
-	std::vector<KeyPoint> SIFTKeypoints(Mat image);
+	Mat SIFTFeatures(Mat &image);
+	vector<KeyPoint> SIFTKeypoints(Mat &image);
 
 	//Perform feature detection with ORB algorithm
 	//A vector of keypoints is returned
-	//std::vector<KeyPoint>  ORBFeatures(Mat image);
+	//vector<KeyPoint>  ORBFeatures(Mat image);
 
 	//Perfom the matching of keypoints over all neighbor couples, in 3 phases: 
 	//1. Matching between the different features extracted,
@@ -27,20 +28,20 @@ public:
 	// visual is a parameter used to decide if yuo want to visualize the matches
 	//return value for wrong matches
 	
-	std::vector<DMatch> matchImages(float ratio, bool visual, int dist, Mat obj_desc, Mat frame_desc, std::vector<KeyPoint> obj_key, std::vector<KeyPoint> frame_key);
+	vector<DMatch> matchImages(float ratio, int dist, Mat &obj_desc, Mat &frame_desc, vector<KeyPoint> &obj_key, vector<KeyPoint> frame_key);
 
-    std::vector<Point2f> findProjection(Mat obj, Mat frame, std::vector<Point2f> obj_key, std::vector<Point2f> frame_key);
+    vector<Point2f> findProjection(Mat &obj, vector<Point2f> &obj_key, const vector<Point2f>& frame_key);
 
-    Mat drawBox(Mat img, Mat img_object, std::vector<Point2f> scene_corners, Scalar color);
+    Mat drawBox(Mat img, Mat img_object, vector<Point2f> scene_corners, Scalar color);
 
 protected:
 
-	//std::vector<std::string> names; //names of immages to be loaded
-	//std::vector<Mat> input_images, proj_images; //vectors of images
-	std::vector<KeyPoint> keypoints, refine_keypoints; //a vector of keypoints/refined keypoints for each image
+	//vector<string> names; //names of immages to be loaded
+	//vector<Mat> input_images, proj_images; //vectors of images
+	vector<KeyPoint> keypoints, refine_keypoints; //a vector of keypoints/refined keypoints for each image
 	Mat descriptor; //a descriptor Mat for each image
-	//std::vector<DMatch> matches, refine_matches, inlier_matches; //a vector of matches/refined matches/inlier matches for each image
+	//vector<DMatch> matches, refine_matches, inlier_matches; //a vector of matches/refined matches/inlier matches for each image
 
-	//std::string path, pattern;
+	//string path, pattern;
 
 };
