@@ -27,10 +27,11 @@ public:
 	// visual is a parameter used to decide if yuo want to visualize the matches
 	//return value for wrong matches
 	
-	static std::vector<DMatch> matchImages(float ratio, bool visual, int dist, Mat obj_desc, Mat frame_desc, std::vector<KeyPoint> obj_key, std::vector<KeyPoint> frame_key);
+	std::vector<DMatch> matchImages(float ratio, bool visual, int dist, Mat obj_desc, Mat frame_desc, std::vector<KeyPoint> obj_key, std::vector<KeyPoint> frame_key);
 
-	static std::vector<Point2f> findProjection(Mat obj, Mat frame, std::vector<KeyPoint> obj_key, std::vector<KeyPoint> frame_key, std::vector<DMatch> matches);
-
+	std::vector<Point2f> findProjection(Mat obj, Mat frame, std::vector<KeyPoint> obj_key, std::vector<KeyPoint> frame_key, std::vector<DMatch> matches);
+	
+	Mat drawBox(Mat img, Mat img_object, std::vector<Point2f> scene_corners, Scalar color);
 
 protected:
 
