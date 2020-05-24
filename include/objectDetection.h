@@ -32,7 +32,7 @@ public:
 
     vector<Point2f> findProjection(Mat &obj, vector<Point2f> &obj_key, const vector<Point2f>& frame_key);
 
-    Mat drawBox(Mat img, Mat img_object, vector<Point2f> scene_corners, Scalar color);
+    Mat drawBox(Mat img, vector<Point2f> scene_corners, Scalar &color);
 
 protected:
 
