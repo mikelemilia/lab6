@@ -2,15 +2,12 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include <iostream>
-#include <stdlib.h>
-#include <opencv2/xfeatures2d.hpp>
 #include <opencv2/xfeatures2d/nonfree.hpp>
-#include <numeric>
-#include <opencv2/calib3d/calib3d.hpp>
-#include "../include/objectDetection.h"
 #include <opencv2/video/tracking.hpp>
-#include <tgmath.h>
 #include <chrono>
+#include <random>
+
+#include "../include/objectDetection.h"
 
 using namespace cv;
 using namespace std;
@@ -30,11 +27,11 @@ int main() {
 
     Mat vis;
 
-    int ratio = 3;
+    float ratio = 3;
 
     objectDetection detector;
 
-    glob("../data/object/obj*.png", names, false);
+    glob("../data/objects/obj*.png", names, false);
 
     for (auto &name : names) {
         objects.push_back(imread(name));
@@ -74,8 +71,11 @@ int main() {
         vector<vector<DMatch>> match;
         vector<vector<Point2f>> vertex(objects.size());
         vector<Scalar> color;
+        random_device randomDevice;
+        mt19937 mt(randomDevice());
+        uniform_int_distribution<int> rnd(0, 255);
         for (auto obj : objects) {
-            color.emplace_back(Scalar(rand() % 256, rand() % 256, rand() % 256));
+            color.emplace_back(Scalar(rnd(mt),rnd(mt),rnd(mt)));
         }
 
         //----------------------
@@ -87,6 +87,7 @@ int main() {
 
             drawMatches(objects[i], obj_key[i], frame, frame_key, match[i], vis); //visualize each match
             namedWindow("KEYPOINTS", WINDOW_NORMAL);
+            resizeWindow("KEYPOINTS", Size(1000, 500));
             imshow("KEYPOINTS", vis);
             waitKey(0);
         }
@@ -167,24 +168,24 @@ int main() {
                 break; // reach to the end of the video file
 
             //for efficiency we discard one frame out of two for the pyramidal optical flow estimation
-            if ((j % 2 == 0) || (j == 1)) {
-                cvtColor(frame, frameGray, COLOR_BGR2GRAY);
-                buildOpticalFlowPyramid(frameGray, pyramid_next, wind_size, maxlevel); //<---- BOTTLENECK
+//            if ((j % 2 == 0) || (j == 1)) {
+            cvtColor(frame, frameGray, COLOR_BGR2GRAY);
+            buildOpticalFlowPyramid(frameGray, pyramid_next, wind_size, maxlevel); //<---- BOTTLENECK
 
-                //These lines are used to estimate the bottleneck of the elaboration
-                //auto t2 = chrono::high_resolution_clock::now();
-                //duration = chrono::duration_cast<chrono::microseconds>(t2 - tr).count();
-                //auto tr = t2;
-                //cout << "PYRAMID: " << duration * 1.0e-3 << " ms" << endl;
+            //These lines are used to estimate the bottleneck of the elaboration
+            //auto t2 = chrono::high_resolution_clock::now();
+            //duration = chrono::duration_cast<chrono::microseconds>(t2 - tr).count();
+            //auto tr = t2;
+            //cout << "PYRAMID: " << duration * 1.0e-3 << " ms" << endl;
 
-                calcOpticalFlowPyrLK(pyramid_prev, pyramid_next, track_keypoints, shift_points, status, noArray(),
-                                     wind_size, maxlevel,
-                                     TermCriteria(TermCriteria::COUNT + TermCriteria::EPS, 15, 0.05));
-                //auto t2 = chrono::high_resolution_clock::now();
-                //duration = chrono::duration_cast<chrono::microseconds>(t2 - tr).count();
-                //auto tr = t2;
-                //cout << "LUKAS-KANADE: " << duration * 1.0e-3 << " ms" << endl;
-            }
+            calcOpticalFlowPyrLK(pyramid_prev, pyramid_next, track_keypoints, shift_points, status, noArray(),
+                                 wind_size, maxlevel,
+                                 TermCriteria(TermCriteria::COUNT + TermCriteria::EPS, 15, 0.05));
+            //auto t2 = chrono::high_resolution_clock::now();
+            //duration = chrono::duration_cast<chrono::microseconds>(t2 - tr).count();
+            //auto tr = t2;
+            //cout << "LUKAS-KANADE: " << duration * 1.0e-3 << " ms" << endl;
+//            }
 
             //----------------------
             //estimate the vertex shift and rotation for each object using optical flow
@@ -222,9 +223,9 @@ int main() {
                 circle(frame, shift_points[h], 3, hue, -1);
             }
 
-            //t2 = chrono::high_resolution_clock::now();
+            //auto t2 = chrono::high_resolution_clock::now();
             //duration = chrono::duration_cast<chrono::microseconds>(t2 - tr).count();
-            //tr = t2;
+            //auto tr = t2;
             //cout << "DRAW POINTS: " << duration * 1.0e-3 << " ms" << endl;
             //cout << "------------------" << endl;
 
@@ -266,7 +267,7 @@ int main() {
             //	pause = 30 - (duration * 1.0e-3);
             //else
             //	pause = 1;
-            pause = min(1, (int) (30 - duration * 10e-6));
+            pause = max(1, (int) (30 - duration * 10e-6));
 
             if (waitKey(pause) >= 0) break;
 
@@ -275,8 +276,7 @@ int main() {
 
 
     cout << "END, press any key to exit" << endl;
-    system("pause");
-
+    waitKey(0);
 }
 
 
