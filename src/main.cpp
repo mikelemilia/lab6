@@ -30,7 +30,6 @@ int main() {
 	objectDetection detector;
     float ratio = 3;
 
-
 	glob("../data/objects/obj*.png", names, false);
 
 	for (auto &name : names)
