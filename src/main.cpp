@@ -267,7 +267,7 @@ int main() {
             //	pause = 30 - (duration * 1.0e-3);
             //else
             //	pause = 1;
-            pause = max(1, (int) (30 - duration * 10e-6));
+            pause = max(1, (int)(30 - duration * 1.0e-3));
 
             if (waitKey(pause) >= 0) break;
 
