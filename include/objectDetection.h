@@ -29,9 +29,9 @@ public:
 	
 	std::vector<DMatch> matchImages(float ratio, bool visual, int dist, Mat obj_desc, Mat frame_desc, std::vector<KeyPoint> obj_key, std::vector<KeyPoint> frame_key);
 
-	std::vector<Point2f> findProjection(Mat obj, Mat frame, std::vector<KeyPoint> obj_key, std::vector<KeyPoint> frame_key, std::vector<DMatch> matches);
-	
-	Mat drawBox(Mat img, Mat img_object, std::vector<Point2f> scene_corners, Scalar color);
+    std::vector<Point2f> findProjection(Mat obj, Mat frame, std::vector<Point2f> obj_key, std::vector<Point2f> frame_key);
+
+    Mat drawBox(Mat img, Mat img_object, std::vector<Point2f> scene_corners, Scalar color);
 
 protected:
 
