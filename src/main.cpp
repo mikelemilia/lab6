@@ -15,13 +15,6 @@
 using namespace cv;
 using namespace std;
 
-//vector<Point2f> findProjection(Mat obj, Mat frame, vector<KeyPoint> obj_key, vector<KeyPoint> frame_key, vector<DMatch> matches);
-//vector<Point2f> findProjection(Mat obj, Mat frame, vector<Point2f> obj_key, vector<Point2f> frame_key);
-//vector<DMatch> matchImages(float ratio, bool visual, int dist, Mat obj_desc, Mat frame_desc, vector<KeyPoint> obj_key, vector<KeyPoint> frame_key);
-//Mat drawBox(Mat img, Mat img_object, vector<Point2f> scene_corners, Scalar color);
-//vector<Point2f> shiftObj(vector<Point2f> vertex, vector<Point2f> track_keypoints, vector<Point2f> shift_points, int start, int end);
-
-
 int main() {
 
     //----------------------
@@ -133,7 +126,7 @@ int main() {
             vertex[k] = detector.findProjection(objects[k], obj_track_points[k],
                                                 vector<Point2f>(track_keypoints.begin() + start,
                                                                 track_keypoints.begin() + end));
-            frame = detector.drawBox(frame, objects[k], vertex[k], color[k]);
+            frame = detector.drawBox(frame, vertex[k], color[k]);
             k++;
         }
 
@@ -204,7 +197,7 @@ int main() {
                 vertex[k] = detector.findProjection(obj, obj_track_points[k],
                                                     vector<Point2f>(shift_points.begin() + start,
                                                                     shift_points.begin() + end));
-                frame = detector.drawBox(frame, objects[k], vertex[k], color[k]);
+                frame = detector.drawBox(frame, vertex[k], color[k]);
 
                 k++;
 

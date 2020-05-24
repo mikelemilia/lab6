@@ -117,7 +117,7 @@ vector<DMatch> objectDetection::matchImages(float ratio, int dist, Mat &obj_desc
 }
 
 
-Mat  objectDetection::drawBox(Mat img, Mat img_object, vector<Point2f> scene_corners, Scalar color) {
+Mat  objectDetection::drawBox(Mat img, vector<Point2f> scene_corners, Scalar &color) {
 
 	line(img, scene_corners[0], scene_corners[1], color, 4);
 	line(img, scene_corners[0], scene_corners[2], color, 4);
