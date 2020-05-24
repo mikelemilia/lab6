@@ -56,9 +56,10 @@ int main() {
         //elaboration of first frame
         //----------------------
 
-        double frames;
+        int frames, frame_rate;
         Mat frame, frameGray;
         frames = cap.get(CAP_PROP_FRAME_COUNT);
+        frame_rate = cap.get(CAP_PROP_FPS);
         cap >> frame;
 
         //----------------------
@@ -168,7 +169,7 @@ int main() {
                 break; // reach to the end of the video file
 
             //for efficiency we discard one frame out of two for the pyramidal optical flow estimation
-            //if ((j % 2 == 0) || (j == 1)) {
+            if ((j % 2 == 0) || (j == 1)) {
             cvtColor(frame, frameGray, COLOR_BGR2GRAY);
             buildOpticalFlowPyramid(frameGray, pyramid_next, wind_size, maxlevel); //<---- BOTTLENECK
 
@@ -185,7 +186,7 @@ int main() {
             //duration = chrono::duration_cast<chrono::microseconds>(t2 - tr).count();
             //auto tr = t2;
             //cout << "LUKAS-KANADE: " << duration * 1.0e-3 << " ms" << endl;
-            //}
+            }
 
             //----------------------
             //estimate the vertex shift and rotation for each object using optical flow
@@ -245,8 +246,9 @@ int main() {
             //----------------------
             auto t2 = chrono::high_resolution_clock::now();
             duration = chrono::duration_cast<chrono::microseconds>(t2 - t1).count();
-            pause = max(1, (int)(30 - duration * 1.0e-3));
-            duration = duration + pause*1.0e3; //total frame duration is execution time + pause, we neglet the least intructions
+            pause = max(1, (int)(frame_rate - duration * 1.0e-3));
+            duration = duration + (long long)pause*1.0e3; //total frame duration is execution time + pause, we neglet the least intructions
+            //std::cout << "FRAME DURATION [ms]" << duration*1.0e-3 << std::endl;
 
             if (j % 10 != 0)
                 avg_fps = avg_fps + 1 / (duration * 1.0e-6);
