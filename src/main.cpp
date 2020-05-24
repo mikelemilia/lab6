@@ -2,15 +2,12 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include <iostream>
-#include <stdlib.h>
-#include <opencv2/xfeatures2d.hpp>
 #include <opencv2/xfeatures2d/nonfree.hpp>
-#include <numeric>
-#include <opencv2/calib3d/calib3d.hpp>
-#include "../include/objectDetection.h"
 #include <opencv2/video/tracking.hpp>
-#include <tgmath.h>
 #include <chrono>
+#include <random>
+
+#include "../include/objectDetection.h"
 
 using namespace cv;
 using namespace std;
@@ -30,13 +27,11 @@ int main() {
 
 	Mat vis;
 
-	int ratio = 3;
-
 	objectDetection detector;
+    float ratio = 3;
 
 
 	glob("../data/objects/obj*.png", names, false);
-
 
 	for (auto &name : names)
 	{
@@ -277,9 +272,8 @@ int main() {
 		} 
 	}
 
-
 	cout << "END, press any key to exit" << endl;
-	system("pause"); 
+	system("pause");
 }
 
 
