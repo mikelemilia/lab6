@@ -46,7 +46,7 @@ int main() {
 	}
 
 	std::vector<Mat> obj_desc;
-	std::vector<std::vector<KeyPoint>> obj_key;
+	std::vector<std::vector<KeyPoint> > obj_key;
 
 	for (auto obj : objects) {
 		obj_key.push_back(detector.SIFTKeypoints(obj));
@@ -64,8 +64,8 @@ int main() {
 		frame_key = detector.SIFTKeypoints(frame);
 		frame_desc = detector.SIFTFeatures(frame);
 
-		std::vector<std::vector<DMatch>> match;
-		std::vector<std::vector<Point2f>> vertex(objects.size());
+		std::vector<std::vector<DMatch> > match;
+		std::vector<std::vector<Point2f> > vertex(objects.size());
 		std::vector<Scalar> color;
 		
 
@@ -84,7 +84,7 @@ int main() {
 
 		//get keypoints from frame to be tracked
 		std::vector<Point2f> track_keypoints;
-		std::vector<std::vector<Point2f>> obj_track_points(objects.size());
+		std::vector<std::vector<Point2f> > obj_track_points(objects.size());
 		std::vector<int> index; //where the ith objects keypoints start
 
 		int i=0 ,j = 0;

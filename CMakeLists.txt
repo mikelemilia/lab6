@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8)
 project(lab6)
 find_package(OpenCV REQUIRED)
 
-set(SOURCE_FILES src/main.cpp)
+set(SOURCE_FILES src/main.cpp include/objectDetection.h src/objectDetection.cpp)
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 
