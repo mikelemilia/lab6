@@ -42,7 +42,7 @@ vector<Point2f> objectDetection::findProjection(Mat &obj, vector<Point2f> &obj_k
 	vector<Point2f> vertex;
 
 	//compute homography between frame and object
-	H = findHomography(obj_key, frame_key, RANSAC, 3, noArray(), 10, 0.99);
+	H = findHomography(obj_key, frame_key, RANSAC, 3, noArray(), 100);
 
 	obj_vertex[0] = Point2f(0, 0);
 	obj_vertex[1] = Point2f(obj.cols, 0);

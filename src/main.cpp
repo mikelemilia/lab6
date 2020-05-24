@@ -17,7 +17,7 @@ int main() {
     //----------------------
     //loading data
     //----------------------
-    VideoCapture cap("../data/video.mov");
+    VideoCapture cap("../data/trial2/video.mp4");
 
     vector<String> names;
     vector<Mat> objects;
@@ -31,7 +31,7 @@ int main() {
 
     objectDetection detector;
 
-    glob("../data/objects/obj*.png", names, false);
+    glob("../data/trial2/obj*.png", names, false);
 
     for (auto &name : names) {
         objects.push_back(imread(name));
@@ -246,6 +246,8 @@ int main() {
             //----------------------
             auto t2 = chrono::high_resolution_clock::now();
             duration = chrono::duration_cast<chrono::microseconds>(t2 - t1).count();
+            
+            //dynamical adjustment of frame rate (when possible)
             pause = max(1, (int)(frame_rate - duration * 1.0e-3));
             duration = duration + (long long)pause*1.0e3; //total frame duration is execution time + pause, we neglet the least intructions
             //std::cout << "FRAME DURATION [ms]" << duration*1.0e-3 << std::endl;
@@ -265,14 +267,6 @@ int main() {
             putText(frame, timebar, Point(0, 40), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(255, 255, 255));
             namedWindow("TRACKING", WINDOW_NORMAL);
             imshow("TRACKING", frame);
-
-            //dynamical adjustment of frame rate (if possible)
-            //if (30 - (duration * 1.0e-3) > 1)
-            //	pause = 30 - (duration * 1.0e-3);
-            //else
-            //	pause = 1;
-            
-            //std::cout << "Duration: " << duration * 1.0e3 << " - Pause: " << pause << std::endl;
 
             if (waitKey(pause) >= 0) break;
 
