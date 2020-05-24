@@ -10,11 +10,12 @@
 #include "../include/objectDetection.h"
 
 using namespace cv;
+using namespace std;
 
 
 objectDetection::objectDetection() {}
 
-std::vector<KeyPoint> objectDetection::SIFTKeypoints(Mat image) {
+vector<KeyPoint> objectDetection::SIFTKeypoints(Mat &image) {
 
 	Ptr<xfeatures2d::SIFT> sift = xfeatures2d::SIFT::create();
 
@@ -24,7 +25,7 @@ std::vector<KeyPoint> objectDetection::SIFTKeypoints(Mat image) {
 
 }
 
-Mat objectDetection::SIFTFeatures(Mat image) {
+Mat objectDetection::SIFTFeatures(Mat &image) {
 
 	Ptr<xfeatures2d::SIFT> sift = xfeatures2d::SIFT::create();
 
@@ -34,11 +35,11 @@ Mat objectDetection::SIFTFeatures(Mat image) {
 
 }
 
-std::vector<Point2f> objectDetection::findProjection(Mat obj, Mat frame, std::vector<Point2f> obj_key, std::vector<Point2f> frame_key) {
+vector<Point2f> objectDetection::findProjection(Mat &obj, vector<Point2f> &obj_key, const vector<Point2f>& frame_key) {
 
-	std::vector<Point2f> obj_vertex(4);
+	vector<Point2f> obj_vertex(4);
 	Mat temp, H;
-	std::vector<Point2f> vertex;
+	vector<Point2f> vertex;
 
 	//compute homography between frame and object
 	H = findHomography(obj_key, frame_key, RANSAC, 3, noArray(), 10, 0.99);
@@ -54,12 +55,12 @@ std::vector<Point2f> objectDetection::findProjection(Mat obj, Mat frame, std::ve
 
 }
 
-std::vector<DMatch>  objectDetection::matchImages(float ratio, bool visual, int dist, Mat obj_desc, Mat frame_desc, std::vector<KeyPoint> obj_key, std::vector<KeyPoint> frame_key) {
+vector<DMatch> objectDetection::matchImages(float ratio, int dist, Mat &obj_desc, Mat &frame_desc, vector<KeyPoint> &obj_key, vector<KeyPoint> frame_key) {
 
 	Mat vis, mask;
 	float min_dist = -1;
 
-	std::vector<DMatch> matches, refine_matches, inlier_matches;
+	vector<DMatch> matches, refine_matches, inlier_matches;
 
 	Ptr<BFMatcher> matcher = BFMatcher::create(dist);
 
@@ -83,7 +84,7 @@ std::vector<DMatch>  objectDetection::matchImages(float ratio, bool visual, int 
 
 	//INLIER FILTERING
 
-	std::vector<Point2f> points1, points2;
+	vector<Point2f> points1, points2;
 
 	//retrieve matched keypoints and convert them in Point2f
 	for (auto& match : refine_matches) {
@@ -104,7 +105,7 @@ std::vector<DMatch>  objectDetection::matchImages(float ratio, bool visual, int 
 
 	//for (int i = 0; i < inlier_matches.size(); i++)
 	//	if (inlier_matches[i].size() < 1) {
-	//		std::cout << "ERROR: no inlier matches in couple " << i << ", try with larger ratio" << std::endl;
+	//		cout << "ERROR: no inlier matches in couple " << i << ", try with larger ratio" << endl;
 	//		refine_matches.clear();
 	//		inlier_matches.clear();
 	//		refine_matches.resize(names.size() - 1);
@@ -116,7 +117,7 @@ std::vector<DMatch>  objectDetection::matchImages(float ratio, bool visual, int 
 }
 
 
-Mat  objectDetection::drawBox(Mat img, Mat img_object, std::vector<Point2f> scene_corners, Scalar color) {
+Mat  objectDetection::drawBox(Mat img, Mat img_object, vector<Point2f> scene_corners, Scalar color) {
 
 	line(img, scene_corners[0], scene_corners[1], color, 4);
 	line(img, scene_corners[0], scene_corners[2], color, 4);

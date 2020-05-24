@@ -13,12 +13,13 @@
 #include <chrono>
 
 using namespace cv;
+using namespace std;
 
-//std::vector<Point2f> findProjection(Mat obj, Mat frame, std::vector<KeyPoint> obj_key, std::vector<KeyPoint> frame_key, std::vector<DMatch> matches);
-//std::vector<Point2f> findProjection(Mat obj, Mat frame, std::vector<Point2f> obj_key, std::vector<Point2f> frame_key);
-//std::vector<DMatch> matchImages(float ratio, bool visual, int dist, Mat obj_desc, Mat frame_desc, std::vector<KeyPoint> obj_key, std::vector<KeyPoint> frame_key);
-//Mat drawBox(Mat img, Mat img_object, std::vector<Point2f> scene_corners, Scalar color);
-//std::vector<Point2f> shiftObj(std::vector<Point2f> vertex, std::vector<Point2f> track_keypoints, std::vector<Point2f> shift_points, int start, int end);
+//vector<Point2f> findProjection(Mat obj, Mat frame, vector<KeyPoint> obj_key, vector<KeyPoint> frame_key, vector<DMatch> matches);
+//vector<Point2f> findProjection(Mat obj, Mat frame, vector<Point2f> obj_key, vector<Point2f> frame_key);
+//vector<DMatch> matchImages(float ratio, bool visual, int dist, Mat obj_desc, Mat frame_desc, vector<KeyPoint> obj_key, vector<KeyPoint> frame_key);
+//Mat drawBox(Mat img, Mat img_object, vector<Point2f> scene_corners, Scalar color);
+//vector<Point2f> shiftObj(vector<Point2f> vertex, vector<Point2f> track_keypoints, vector<Point2f> shift_points, int start, int end);
 
 
 int main() {
@@ -26,12 +27,12 @@ int main() {
 	//----------------------
 	//loading data
 	//----------------------
-	VideoCapture cap("../data/trial2/video.mp4");
+	VideoCapture cap("../data/video.mov");
 
-	std::vector<String> names;
-	std::vector<Mat> objects;
+	vector<String> names;
+	vector<Mat> objects;
 
-	std::vector<KeyPoint> frame_key;
+	vector<KeyPoint> frame_key;
 	Mat frame_desc;
 
 	Mat vis;
@@ -40,9 +41,9 @@ int main() {
 
 	objectDetection detector;
 
-	glob("../data/trial2/obj*.png", names, false);
+	glob("../data/object/obj*.png", names, false);
 
-	for (auto name : names)
+	for (auto &name : names)
 	{
 		objects.push_back(imread(name));
 
@@ -52,8 +53,8 @@ int main() {
 	//objects feature detection
 	//----------------------
 
-	std::vector<Mat> obj_desc;
-	std::vector<std::vector<KeyPoint>> obj_key;
+	vector<Mat> obj_desc;
+	vector<vector<KeyPoint>> obj_key;
 
 	for (auto obj : objects) {
 		obj_key.push_back(detector.SIFTKeypoints(obj));
@@ -80,11 +81,11 @@ int main() {
 		frame_key = detector.SIFTKeypoints(frame);
 		frame_desc = detector.SIFTFeatures(frame);
 
-		std::vector<std::vector<DMatch>> match;
-		std::vector<std::vector<Point2f>> vertex(objects.size());
-		std::vector<Scalar> color;
+		vector<vector<DMatch>> match;
+		vector<vector<Point2f>> vertex(objects.size());
+		vector<Scalar> color;
 		for (auto obj : objects) {
-			color.push_back(Scalar(rand()%256, rand()%256, rand()%256));
+			color.emplace_back(Scalar(rand()%256, rand()%256, rand()%256));
 		}
 
 	//----------------------
@@ -92,7 +93,7 @@ int main() {
 	//----------------------
 
 		for (int i = 0; i < objects.size(); i++) {
-			match.push_back(detector.matchImages(ratio, false, NORM_L2, obj_desc[i], frame_desc, obj_key[i], frame_key));
+			match.push_back(detector.matchImages(ratio, NORM_L2, obj_desc[i], frame_desc, obj_key[i], frame_key));
 
 			drawMatches(objects[i], obj_key[i], frame, frame_key, match[i], vis); //visualize each match
 			namedWindow("KEYPOINTS", WINDOW_NORMAL);
@@ -104,9 +105,9 @@ int main() {
 	//get keypoints from frame and object to be tracked
 	//-------------------------
 
-		std::vector<Point2f> track_keypoints;
-		std::vector<std::vector<Point2f>> obj_track_points(objects.size());
-		std::vector<int> index; //where the ith object keypoints start
+		vector<Point2f> track_keypoints;
+		vector<vector<Point2f>> obj_track_points(objects.size());
+		vector<int> index; //where the ith object keypoints start
 
 		int i=0 ,j = 0;
 		for (auto &v :match ){
@@ -132,7 +133,7 @@ int main() {
 			
 			start = index[k];
 			end = index[k + 1];
-			vertex[k] = detector.findProjection(objects[k], frame, obj_track_points[k], std::vector<Point2f>(track_keypoints.begin() + start, track_keypoints.begin() + end));
+			vertex[k] = detector.findProjection(objects[k], obj_track_points[k], vector<Point2f>(track_keypoints.begin() + start, track_keypoints.begin() + end));
 			frame = detector.drawBox(frame, objects[k], vertex[k], color[k]);
 			k++;
 		}
@@ -149,26 +150,25 @@ int main() {
 	//----------------------
 
 		Mat prev_frame;
-		std::vector<Mat> pyramid_prev, pyramid_next;
+		vector<Mat> pyramid_prev, pyramid_next;
 		Mat status;
-		std::vector<Point2f> shift_points, shift_vertex;
+		vector<Point2f> shift_points, shift_vertex;
 		Size wind_size = Size(7, 7);
 		int maxlevel = 3;
 
 		cvtColor(frame, frameGray, COLOR_BGR2GRAY);
 		buildOpticalFlowPyramid(frameGray, pyramid_prev, wind_size, maxlevel);
 		j = 1;
-		std::string framerate, timebar;
+		string framerate, timebar;
 		double fps, avg_fps = 0;
-		int pause=1;
-		std::chrono::steady_clock::time_point t1, t2, tr;
+		int pause;
 		long long duration;
 
 
 		for(;;) { 
 		 
-			t1 = std::chrono::high_resolution_clock::now();
-			tr = std::chrono::high_resolution_clock::now();
+			auto t1 = chrono::high_resolution_clock::now();
+			auto tr = chrono::high_resolution_clock::now();
 			cap >> frame;
 
 			if (frame.empty())
@@ -180,89 +180,85 @@ int main() {
 				buildOpticalFlowPyramid(frameGray, pyramid_next, wind_size, maxlevel); //<---- BOTTLENECK
 				
 				//These lines are used to estimate the bottleneck of the elaboration
-				//t2 = std::chrono::high_resolution_clock::now();
-				//duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - tr).count();
-				//tr = t2;
-				//std::cout << "PYRAMID: " << duration * 1.0e-3 << " ms" << std::endl;
+				//auto t2 = chrono::high_resolution_clock::now();
+				//duration = chrono::duration_cast<chrono::microseconds>(t2 - tr).count();
+				//auto tr = t2;
+				//cout << "PYRAMID: " << duration * 1.0e-3 << " ms" << endl;
 
 				calcOpticalFlowPyrLK(pyramid_prev, pyramid_next, track_keypoints, shift_points, status, noArray(), wind_size, maxlevel, TermCriteria(TermCriteria::COUNT + TermCriteria::EPS, 15, 0.05));
-				//t2 = std::chrono::high_resolution_clock::now();
-				//duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - tr).count();
-				//tr = t2;
-				//std::cout << "LUKAS-KANADE: " << duration * 1.0e-3 << " ms" << std::endl;
+				//auto t2 = chrono::high_resolution_clock::now();
+				//duration = chrono::duration_cast<chrono::microseconds>(t2 - tr).count();
+				//auto tr = t2;
+				//cout << "LUKAS-KANADE: " << duration * 1.0e-3 << " ms" << endl;
 			}
 
 	//----------------------
 	//estimate the vertex shift and rotation for each object using optical flow
 	//----------------------
-			int start, end;
-			int k = 0;
+			k = 0;
 			for (auto& obj : objects) {
 
 				start = index[k];
 				end = index[k + 1];
-				vertex[k] = detector.findProjection(obj, frame, obj_track_points[k], std::vector<Point2f>(shift_points.begin() + start, shift_points.begin() + end));
-
+				vertex[k] = detector.findProjection(obj, obj_track_points[k], vector<Point2f>(shift_points.begin() + start, shift_points.begin() + end));
 				frame = detector.drawBox(frame, objects[k], vertex[k], color[k]);
 
 				k++;
 
 			}
 
-			//t2 = std::chrono::high_resolution_clock::now();
-			//duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - tr).count();
-			//tr = t2;
-			//std::cout << "DRAW BOX: " << duration * 1.0e-3 << " ms" << std::endl;
+			//auto t2 = chrono::high_resolution_clock::now();
+			//duration = chrono::duration_cast<chrono::microseconds>(t2 - tr).count();
+			//auto tr = t2;
+			//cout << "DRAW BOX: " << duration * 1.0e-3 << " ms" << endl;
 
 
 	//----------------------
 	//drawing keypoints witth differetn colors
 	//----------------------
 			Scalar hue;
-			for (int i = 0; i < shift_points.size(); i++) {
+			for (int h = 0; h < shift_points.size(); h++) {
 				
 				for (k = 1; k < index.size(); k++) {
-					if (i >= index[k - 1] && i < index[k])
+					if (h >= index[k - 1] && h < index[k])
 						hue = color[k - 1];
 				}
-				circle(frame,shift_points[i], 3, hue, -1);
+				circle(frame,shift_points[h], 3, hue, -1);
 			}
 
-			//t2 = std::chrono::high_resolution_clock::now();
-			//duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - tr).count();
+			//t2 = chrono::high_resolution_clock::now();
+			//duration = chrono::duration_cast<chrono::microseconds>(t2 - tr).count();
 			//tr = t2;
-			//std::cout << "DRAW POINTS: " << duration * 1.0e-3 << " ms" << std::endl;
-			//std::cout << "------------------" << std::endl;
+			//cout << "DRAW POINTS: " << duration * 1.0e-3 << " ms" << endl;
+			//cout << "------------------" << endl;
 			
 
 	//----------------------
 	//update pyramid
 	//----------------------
 			track_keypoints = shift_points; 
-			int i = 0;
+			i = 0;
 			for (auto& p : pyramid_next) {
 				p.copyTo(pyramid_prev[i++]);
 			}
-			
 			j++;
 
 	//----------------------
 	//compute statistics about frame flow
 	//----------------------
-			t2 = std::chrono::high_resolution_clock::now();
-			duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
+			auto t2 = chrono::high_resolution_clock::now();
+			duration = chrono::duration_cast<chrono::microseconds>(t2 - t1).count();
 
 			if(j%10 != 0)
 			avg_fps = avg_fps + 1 / (duration * 1.0e-6 );
 			else {
 				avg_fps = avg_fps / 10;
 				fps = avg_fps;
-				framerate = "FPS: " + std::to_string(fps);
+				framerate = "FPS: " + to_string(fps);
 				avg_fps = 0;
 			}
 			
-			timebar = "VIDEO PROCEEDING: " + std::to_string( (int)( j * 100.0 / frames) ) +"%";
-	
+			timebar = "VIDEO PROCEEDING: " + to_string( (int)( j * 100.0 / frames) ) +"%";
 
 			putText(frame, framerate, Point(0, 20), FONT_HERSHEY_SIMPLEX, 0.75, Scalar(255, 255, 255));
 			putText(frame, timebar, Point(0, 40), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(255, 255, 255));
@@ -274,7 +270,7 @@ int main() {
 			//	pause = 30 - (duration * 1.0e-3);
 			//else
 			//	pause = 1;
-			pause = min(1, (int)(30 - (duration * 10e-6)) );
+			pause = min(1, (int)(30 - duration * 10e-6) );
 
 			if (waitKey(pause) >= 0) break;
 			
@@ -282,7 +278,7 @@ int main() {
 	}
 
 
-	std::cout << "END, press any key to exit" << std::endl;
+	cout << "END, press any key to exit" << endl;
 	system("pause"); 
 
 }
