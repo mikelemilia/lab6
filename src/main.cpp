@@ -17,7 +17,7 @@ int main() {
     //----------------------
     //loading data
     //----------------------
-    VideoCapture cap("../data/trial2/video.mp4");
+    VideoCapture cap("../data/video.mp4");
 
     vector<String> names;
     vector<Mat> objects;
@@ -31,11 +31,10 @@ int main() {
 
     objectDetection detector;
 
-    glob("../data/trial2/obj*.png", names, false);
+    glob("../data/flowers/obj*.png", names, false);
 
     for (auto &name : names) {
         objects.push_back(imread(name));
-
     }
 
     //----------------------
@@ -50,16 +49,19 @@ int main() {
         obj_desc.push_back(detector.SIFTFeatures(obj));
     }
 
-    if (cap.isOpened()) { // check if we succeeded
+    if (!cap.isOpened()) {
+        cerr << "Error! No video was found!" << endl;
+    } else { // check if we succeeded
 
         //----------------------
         //elaboration of first frame
         //----------------------
 
-        int frames, frame_rate;
+        double frames, frame_rate;
         Mat frame, frameGray;
         frames = cap.get(CAP_PROP_FRAME_COUNT);
         frame_rate = cap.get(CAP_PROP_FPS);
+
         cap >> frame;
 
         //----------------------
@@ -76,7 +78,7 @@ int main() {
         mt19937 mt(randomDevice());
         uniform_int_distribution<int> rnd(0, 255);
         for (auto obj : objects) {
-            color.emplace_back(Scalar(rnd(mt),rnd(mt),rnd(mt)));
+            color.emplace_back(Scalar(rnd(mt), rnd(mt), rnd(mt)));
         }
 
         //----------------------
@@ -169,24 +171,24 @@ int main() {
                 break; // reach to the end of the video file
 
             //for efficiency we discard one frame out of two for the pyramidal optical flow estimation
-            if ((j % 2 == 0) || (j == 1)) {
-            cvtColor(frame, frameGray, COLOR_BGR2GRAY);
-            buildOpticalFlowPyramid(frameGray, pyramid_next, wind_size, maxlevel); //<---- BOTTLENECK
+//            if ((j % 2 == 0) || (j == 1)) {
+                cvtColor(frame, frameGray, COLOR_BGR2GRAY);
+                buildOpticalFlowPyramid(frameGray, pyramid_next, wind_size, maxlevel); //<---- BOTTLENECK
 
-            //These lines are used to estimate the bottleneck of the elaboration
-            //auto t2 = chrono::high_resolution_clock::now();
-            //duration = chrono::duration_cast<chrono::microseconds>(t2 - tr).count();
-            //auto tr = t2;
-            //cout << "PYRAMID: " << duration * 1.0e-3 << " ms" << endl;
+                //These lines are used to estimate the bottleneck of the elaboration
+                //auto t2 = chrono::high_resolution_clock::now();
+                //duration = chrono::duration_cast<chrono::microseconds>(t2 - tr).count();
+                //auto tr = t2;
+                //cout << "PYRAMID: " << duration * 1.0e-3 << " ms" << endl;
 
-            calcOpticalFlowPyrLK(pyramid_prev, pyramid_next, track_keypoints, shift_points, status, noArray(),
-                                 wind_size, maxlevel,
-                                 TermCriteria(TermCriteria::COUNT + TermCriteria::EPS, 15, 0.05));
-            //auto t2 = chrono::high_resolution_clock::now();
-            //duration = chrono::duration_cast<chrono::microseconds>(t2 - tr).count();
-            //auto tr = t2;
-            //cout << "LUKAS-KANADE: " << duration * 1.0e-3 << " ms" << endl;
-            }
+                calcOpticalFlowPyrLK(pyramid_prev, pyramid_next, track_keypoints, shift_points, status, noArray(),
+                                     wind_size, maxlevel,
+                                     TermCriteria(TermCriteria::COUNT + TermCriteria::EPS, 15, 0.05));
+                //auto t2 = chrono::high_resolution_clock::now();
+                //duration = chrono::duration_cast<chrono::microseconds>(t2 - tr).count();
+                //auto tr = t2;
+                //cout << "LUKAS-KANADE: " << duration * 1.0e-3 << " ms" << endl;
+//            }
 
             //----------------------
             //estimate the vertex shift and rotation for each object using optical flow
@@ -212,7 +214,7 @@ int main() {
 
 
             //----------------------
-            //drawing keypoints witth differetn colors
+            //drawing keypoints with different colors
             //----------------------
             Scalar hue;
             for (int h = 0; h < shift_points.size(); h++) {
@@ -246,10 +248,11 @@ int main() {
             //----------------------
             auto t2 = chrono::high_resolution_clock::now();
             duration = chrono::duration_cast<chrono::microseconds>(t2 - t1).count();
-            
+
             //dynamical adjustment of frame rate (when possible)
-            pause = max(1, (int)(frame_rate - duration * 1.0e-3));
-            duration = duration + (long long)pause*1.0e3; //total frame duration is execution time + pause, we neglet the least intructions
+            pause = max(1, (int) (frame_rate - duration * 1.0e-3));
+            duration = duration + (long long) pause *
+                                  1.0e3; //total frame duration is execution time + pause, we neglet the least intructions
             //std::cout << "FRAME DURATION [ms]" << duration*1.0e-3 << std::endl;
 
             if (j % 10 != 0)
@@ -274,7 +277,7 @@ int main() {
     }
 
 
-    cout << "END, press any key to exit" << endl;
+//    cout << "END, press any key to exit" << endl;
     waitKey(0);
 }
 
