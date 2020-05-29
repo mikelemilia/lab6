@@ -12,16 +12,18 @@
 using namespace cv;
 using namespace std;
 
-int main() {
+void initLab6(size_t argc, char *argv[], vector<String> &paths);
+
+int main(int argc, char **argv) {
 
     //----------------------
-    //loading data
+    // variables
     //----------------------
 
-    VideoCapture cap("../data/trial1/video.mp4");
+    vector<String> paths;               // paths to objects and video
+    vector<String> objects_names;       // name of the objects
+    vector<Mat> objects;                // vector that contain all the objects
 
-    vector<String> names;
-    vector<Mat> objects;
 
     vector<KeyPoint> frame_key;
     Mat frame_desc;
@@ -32,23 +34,30 @@ int main() {
 
     objectDetection detector;
 
-    glob("../data/trial1/obj*.png", names, false);
-
-
-    for (auto &name : names) {
-        objects.push_back(imread(name));
-    }
-
-    //----------------------
-    //objects feature detection
-    //----------------------
-
     vector<Mat> obj_desc;
     vector<vector<KeyPoint>> obj_key;
 
-    for (auto obj : objects) {
-        obj_key.push_back(detector.SIFTKeypoints(obj));
-        obj_desc.push_back(detector.SIFTFeatures(obj));
+    double frames, frame_rate;
+    Mat frame, frameGray;
+
+    //----------------------
+    //loading data
+    //----------------------
+
+    initLab6(argc, argv, paths);
+
+    VideoCapture cap(paths[0]);
+
+    try {
+        glob(paths[1] + "/*.*", objects_names, false);        // collecting all the objects
+    } catch (Exception &e) {
+        const char *err_msg = e.what();
+        cerr << "\nException caught: " << err_msg << endl;
+        exit(-1);
+    }
+
+    for (auto &name : objects_names) {
+        objects.push_back(imread(name));
     }
 
     if (!cap.isOpened()) {
@@ -56,11 +65,18 @@ int main() {
     } else { // check if we succeeded
 
         //----------------------
+        //objects feature detection
+        //----------------------
+
+        for (auto obj : objects) {
+            obj_key.push_back(detector.SIFTKeypoints(obj));
+            obj_desc.push_back(detector.SIFTFeatures(obj));
+        }
+
+        //----------------------
         //elaboration of first frame
         //----------------------
 
-        double frames, frame_rate;
-        Mat frame, frameGray;
         frames = cap.get(CAP_PROP_FRAME_COUNT);
         frame_rate = cap.get(CAP_PROP_FPS);
 
@@ -80,7 +96,7 @@ int main() {
         mt19937 mt(randomDevice());
         uniform_int_distribution<int> rnd(0, 255);
         for (auto obj : objects) {
-            color.emplace_back(Scalar(rnd(mt),rnd(mt),rnd(mt))); //random color for esch object
+            color.emplace_back(Scalar(rnd(mt), rnd(mt), rnd(mt))); //random color for esch object
         }
 
         //----------------------
@@ -109,7 +125,7 @@ int main() {
         for (auto &v :match) {
 
             index.push_back(i);
-             
+
             for (auto &p : v) {
                 obj_track_points[j].push_back(obj_key[j][p.queryIdx].pt);
                 track_keypoints.push_back(frame_key[p.trainIdx].pt);
@@ -129,9 +145,7 @@ int main() {
 
             start = index[k];
             end = index[k + 1];
-            vertex[k] = detector.findProjection(objects[k], obj_track_points[k],
-                                                vector<Point2f>(track_keypoints.begin() + start,
-                                                                track_keypoints.begin() + end));
+            vertex[k] = detector.findProjection(objects[k], obj_track_points[k], vector<Point2f>(track_keypoints.begin() + start, track_keypoints.begin() + end));
             frame = detector.drawBox(frame, vertex[k], color[k]);
             k++;
         }
@@ -151,7 +165,7 @@ int main() {
         vector<Mat> pyramid_prev, pyramid_next;
         Mat status;
         vector<Point2f> shift_points, shift_vertex;
-        Size wind_size = Size(5, 5 ); //<- EXPERIMENTS
+        Size wind_size = Size(5, 5); //<- EXPERIMENTS
         int maxlevel = 3;  //<- EXPERIMENTS
 
         cvtColor(frame, frameGray, COLOR_BGR2GRAY);
@@ -170,14 +184,15 @@ int main() {
             cap >> frame;
 
             if (frame.empty()) {
-                std::cout << "Video ended" << std::endl;
+                cout << "Video ended" << endl;
                 break; // reach to the end of the video file
             }
 
             //for efficiency we discard one frame out of two for the pyramidal optical flow estimation
             //if ((j % 2 == 0) || (j == 1)) {
             cvtColor(frame, frameGray, COLOR_BGR2GRAY);
-            buildOpticalFlowPyramid(frameGray, pyramid_next, wind_size, maxlevel); //<---- BOTTLENECK in WINDOWS, to avoid to compute more times the pyramid, we collect all the keypoints in the same vector and we use a list of indexes
+            buildOpticalFlowPyramid(frameGray, pyramid_next, wind_size,
+                                    maxlevel); //<---- BOTTLENECK in WINDOWS, to avoid to compute more times the pyramid, we collect all the keypoints in the same vector and we use a list of indexes
 
             //These lines are used to estimate the bottleneck of the elaboration
             auto t2 = chrono::high_resolution_clock::now();
@@ -257,7 +272,7 @@ int main() {
             pause = max(1, (int) (frame_rate - duration * 1.0e-3));
             duration = duration + (long long) pause *
                                   1.0e3; //total frame duration is execution time + pause, we neglet the least intructions
-            //std::cout << "FRAME DURATION [ms]" << duration*1.0e-3 << std::endl;
+            //cout << "FRAME DURATION [ms]" << duration*1.0e-3 << endl;
 
             if (j % 10 != 0)
                 avg_fps = avg_fps + 1 / (duration * 1.0e-6);
@@ -277,7 +292,7 @@ int main() {
 
             if (waitKey(pause) >= 0) {
                 int key = waitKey();
-                std::cout << "Press any key to resume the video or <ESC> to stop the video" << std::endl;
+                cout << "Press any key to resume the video or <ESC> to stop the video" << endl;
                 if (key == 27)
                     break;
             }
@@ -287,9 +302,34 @@ int main() {
 
     destroyAllWindows();
 
-    std::cout << "Termination: press <ENTER> to exit..." << std::endl;
+    cout << "Termination: press <ENTER> to exit..." << endl;
     fflush(stdin);
     getc(stdin);
 }
+
+void initLab6(size_t argc, char *argv[], vector<String> &paths) {
+
+    const String keys =
+            "{help h usage ? |<none>| Print help message }"
+            "{@objects       |      | Input objects path }"
+            "{@video         |      | Input video path}";
+
+    CommandLineParser parser(argc, argv, keys);
+    parser.about("\nCOMPUTER VISION - LAB6\n");
+    if (parser.has("help")) {
+        parser.printMessage();
+        exit(1);
+    }
+
+    paths.emplace_back(parser.get<String>("@objects"));
+    paths.emplace_back(parser.get<String>("@video"));
+
+    if (!parser.check()) {
+        parser.printErrors();
+        exit(-1);
+    }
+
+}
+
 
 

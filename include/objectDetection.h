@@ -1,3 +1,6 @@
+#ifndef LAB6_OBJECTDETECTION_H
+#define LAB6_OBJECTDETECTION_H
+
 using namespace cv;
 using namespace std;
 
@@ -35,3 +38,5 @@ protected:
 	Mat descriptor; //a descriptor Mat for each image
 
 };
+
+#endif
