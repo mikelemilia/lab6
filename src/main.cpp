@@ -17,7 +17,7 @@ int main() {
     //----------------------
     //loading data
     //----------------------
-    VideoCapture cap("../data/trial2/video.mp4");
+    VideoCapture cap("../data/trial1/video.mp4");
 
     vector<String> names;
     vector<Mat> objects;
@@ -27,11 +27,11 @@ int main() {
 
     Mat vis;
 
-    float ratio = 3;
+    float ratio = 3;  //<- EXPERIMENTS
 
     objectDetection detector;
 
-    glob("../data/trial2/obj*.png", names, false);
+    glob("../data/trial1/obj*.png", names, false);
 
     for (auto &name : names) {
         objects.push_back(imread(name));
@@ -76,7 +76,7 @@ int main() {
         mt19937 mt(randomDevice());
         uniform_int_distribution<int> rnd(0, 255);
         for (auto obj : objects) {
-            color.emplace_back(Scalar(rnd(mt),rnd(mt),rnd(mt)));
+            color.emplace_back(Scalar(rnd(mt),rnd(mt),rnd(mt))); //random color for esch object
         }
 
         //----------------------
@@ -105,7 +105,7 @@ int main() {
         for (auto &v :match) {
 
             index.push_back(i);
-
+             
             for (auto &p : v) {
                 obj_track_points[j].push_back(obj_key[j][p.queryIdx].pt);
                 track_keypoints.push_back(frame_key[p.trainIdx].pt);
@@ -147,8 +147,8 @@ int main() {
         vector<Mat> pyramid_prev, pyramid_next;
         Mat status;
         vector<Point2f> shift_points, shift_vertex;
-        Size wind_size = Size(7, 7);
-        int maxlevel = 3;
+        Size wind_size = Size(5, 5 ); //<- EXPERIMENTS
+        int maxlevel = 3;  //<- EXPERIMENTS
 
         cvtColor(frame, frameGray, COLOR_BGR2GRAY);
         buildOpticalFlowPyramid(frameGray, pyramid_prev, wind_size, maxlevel);
@@ -165,28 +165,30 @@ int main() {
             auto tr = chrono::high_resolution_clock::now();
             cap >> frame;
 
-            if (frame.empty())
+            if (frame.empty()) {
+                std::cout << "Video ended" << std::endl;
                 break; // reach to the end of the video file
+            }
 
             //for efficiency we discard one frame out of two for the pyramidal optical flow estimation
-            if ((j % 2 == 0) || (j == 1)) {
+            //if ((j % 2 == 0) || (j == 1)) {
             cvtColor(frame, frameGray, COLOR_BGR2GRAY);
-            buildOpticalFlowPyramid(frameGray, pyramid_next, wind_size, maxlevel); //<---- BOTTLENECK
+            buildOpticalFlowPyramid(frameGray, pyramid_next, wind_size, maxlevel); //<---- BOTTLENECK in WINDOWS, to avoid to compute more times the pyramid, we collect all the keypoints in the same vector and we use a list of indexes
 
             //These lines are used to estimate the bottleneck of the elaboration
-            //auto t2 = chrono::high_resolution_clock::now();
-            //duration = chrono::duration_cast<chrono::microseconds>(t2 - tr).count();
-            //auto tr = t2;
-            //cout << "PYRAMID: " << duration * 1.0e-3 << " ms" << endl;
+            auto t2 = chrono::high_resolution_clock::now();
+            duration = chrono::duration_cast<chrono::microseconds>(t2 - tr).count();
+            tr = t2;
+            cout << "PYRAMID: " << duration * 1.0e-3 << " ms" << endl;
 
             calcOpticalFlowPyrLK(pyramid_prev, pyramid_next, track_keypoints, shift_points, status, noArray(),
                                  wind_size, maxlevel,
-                                 TermCriteria(TermCriteria::COUNT + TermCriteria::EPS, 15, 0.05));
-            //auto t2 = chrono::high_resolution_clock::now();
-            //duration = chrono::duration_cast<chrono::microseconds>(t2 - tr).count();
-            //auto tr = t2;
-            //cout << "LUKAS-KANADE: " << duration * 1.0e-3 << " ms" << endl;
-            }
+                                 TermCriteria(TermCriteria::COUNT + TermCriteria::EPS, 15, 0.05));  //<- EXPERIMENTS
+            t2 = chrono::high_resolution_clock::now();
+            duration = chrono::duration_cast<chrono::microseconds>(t2 - tr).count();
+            tr = t2;
+            cout << "LUKAS-KANADE: " << duration * 1.0e-3 << " ms" << endl;
+            //}
 
             //----------------------
             //estimate the vertex shift and rotation for each object using optical flow
@@ -205,10 +207,10 @@ int main() {
 
             }
 
-            //auto t2 = chrono::high_resolution_clock::now();
-            //duration = chrono::duration_cast<chrono::microseconds>(t2 - tr).count();
-            //auto tr = t2;
-            //cout << "DRAW BOX: " << duration * 1.0e-3 << " ms" << endl;
+            t2 = chrono::high_resolution_clock::now();
+            duration = chrono::duration_cast<chrono::microseconds>(t2 - tr).count();
+            tr = t2;
+            cout << "DRAW BOX: " << duration * 1.0e-3 << " ms" << endl;
 
 
             //----------------------
@@ -224,11 +226,11 @@ int main() {
                 circle(frame, shift_points[h], 3, hue, -1);
             }
 
-            //auto t2 = chrono::high_resolution_clock::now();
-            //duration = chrono::duration_cast<chrono::microseconds>(t2 - tr).count();
-            //auto tr = t2;
-            //cout << "DRAW POINTS: " << duration * 1.0e-3 << " ms" << endl;
-            //cout << "------------------" << endl;
+            t2 = chrono::high_resolution_clock::now();
+            duration = chrono::duration_cast<chrono::microseconds>(t2 - tr).count();
+            tr = t2;
+            cout << "DRAW POINTS: " << duration * 1.0e-3 << " ms" << endl;
+            cout << "------------------" << endl;
 
 
             //----------------------
@@ -244,7 +246,7 @@ int main() {
             //----------------------
             //compute statistics about frame flow
             //----------------------
-            auto t2 = chrono::high_resolution_clock::now();
+            t2 = chrono::high_resolution_clock::now();
             duration = chrono::duration_cast<chrono::microseconds>(t2 - t1).count();
             
             //dynamical adjustment of frame rate (when possible)
@@ -268,14 +270,22 @@ int main() {
             namedWindow("TRACKING", WINDOW_NORMAL);
             imshow("TRACKING", frame);
 
-            if (waitKey(pause) >= 0) break;
+            if (waitKey(pause) >= 0) {
+                int key = waitKey();
+                std::cout << "Press any key to resume the video or <ESC> to stop the video" << std::endl;
+                if (key == 27)
+                    break;
+            }
 
         }
     }
 
+    destroyAllWindows();
 
-    cout << "END, press any key to exit" << endl;
-    waitKey(0);
+    std::cout << "Termination: press <ENTER> to exit..." << std::endl;
+    fflush(stdin);
+    getc(stdin);
+
 }
 
 
