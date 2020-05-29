@@ -1,19 +1,13 @@
 #include <opencv2/core.hpp>
-#include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
-#include <iostream> 
-#include <stdlib.h>
-#include <opencv2/xfeatures2d.hpp>
 #include <opencv2/xfeatures2d/nonfree.hpp>
-#include <numeric> 
 #include <opencv2/calib3d/calib3d.hpp>
 #include "../include/objectDetection.h"
 
 using namespace cv;
 using namespace std;
 
-
-objectDetection::objectDetection() {}
+objectDetection::objectDetection() = default;
 
 vector<KeyPoint> objectDetection::SIFTKeypoints(Mat &image) {
 
@@ -55,7 +49,7 @@ vector<Point2f> objectDetection::findProjection(Mat &obj, vector<Point2f> &obj_k
 
 }
 
-vector<DMatch> objectDetection::matchImages(float ratio, int dist, Mat &obj_desc, Mat &frame_desc, vector<KeyPoint> &obj_key, vector<KeyPoint> frame_key) {
+vector<DMatch> objectDetection::matchImages(float ratio, int dist, Mat &obj_desc, Mat &frame_desc, vector<KeyPoint> &obj_key, const vector<KeyPoint> &frame_key) {
 
 	Mat vis, mask;
 	float min_dist = -1;
@@ -69,20 +63,20 @@ vector<DMatch> objectDetection::matchImages(float ratio, int dist, Mat &obj_desc
 	//REFINE MATCHES
 
 	//seek for the minimun distance among the matches of the actual couple
-	for (auto& match : matches) {
+	for (auto &match : matches) {
 		if ((match.distance < min_dist) || (min_dist == -1))
 			min_dist = match.distance;
 	}
 
 	//discard all matches with distance > ratio * min_dist
-	for (auto& match : matches) {
+	for (auto &match : matches) {
 
 		if (match.distance <= ratio * min_dist) {
 			refine_matches.push_back(match);
 		}
 	}
 
-	//INLIER FILTERING
+	//INLIERS FILTERING
 
 	vector<Point2f> points1, points2;
 
@@ -95,9 +89,8 @@ vector<DMatch> objectDetection::matchImages(float ratio, int dist, Mat &obj_desc
 	//compute homography
 	findHomography(points1, points2, RANSAC, 3, mask);
 
-	//discard all outlies points
+	//discard all outliers points
 	for (int j = 0; j < mask.rows; j++) {
-
 		if (mask.at<uchar>(j, 0) == 1)
 			inlier_matches.push_back(refine_matches[j]);
 	}

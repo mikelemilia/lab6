@@ -17,6 +17,7 @@ int main() {
     //----------------------
     //loading data
     //----------------------
+
     VideoCapture cap("../data/trial1/video.mp4");
 
     vector<String> names;
@@ -33,9 +34,9 @@ int main() {
 
     glob("../data/trial1/obj*.png", names, false);
 
+
     for (auto &name : names) {
         objects.push_back(imread(name));
-
     }
 
     //----------------------
@@ -50,16 +51,19 @@ int main() {
         obj_desc.push_back(detector.SIFTFeatures(obj));
     }
 
-    if (cap.isOpened()) { // check if we succeeded
+    if (!cap.isOpened()) {
+        cerr << "Error! No video was found!" << endl;
+    } else { // check if we succeeded
 
         //----------------------
         //elaboration of first frame
         //----------------------
 
-        int frames, frame_rate;
+        double frames, frame_rate;
         Mat frame, frameGray;
         frames = cap.get(CAP_PROP_FRAME_COUNT);
         frame_rate = cap.get(CAP_PROP_FPS);
+
         cap >> frame;
 
         //----------------------
@@ -214,7 +218,7 @@ int main() {
 
 
             //----------------------
-            //drawing keypoints witth differetn colors
+            //drawing keypoints with different colors
             //----------------------
             Scalar hue;
             for (int h = 0; h < shift_points.size(); h++) {
@@ -248,10 +252,11 @@ int main() {
             //----------------------
             t2 = chrono::high_resolution_clock::now();
             duration = chrono::duration_cast<chrono::microseconds>(t2 - t1).count();
-            
+
             //dynamical adjustment of frame rate (when possible)
-            pause = max(1, (int)(frame_rate - duration * 1.0e-3));
-            duration = duration + (long long)pause*1.0e3; //total frame duration is execution time + pause, we neglet the least intructions
+            pause = max(1, (int) (frame_rate - duration * 1.0e-3));
+            duration = duration + (long long) pause *
+                                  1.0e3; //total frame duration is execution time + pause, we neglet the least intructions
             //std::cout << "FRAME DURATION [ms]" << duration*1.0e-3 << std::endl;
 
             if (j % 10 != 0)
@@ -285,7 +290,6 @@ int main() {
     std::cout << "Termination: press <ENTER> to exit..." << std::endl;
     fflush(stdin);
     getc(stdin);
-
 }
 
 
