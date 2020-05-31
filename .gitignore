@@ -5,4 +5,4 @@ build/
 data/
 
 # Ignore CMakeLists
-CMakeLists.txt
+CMakeLists
