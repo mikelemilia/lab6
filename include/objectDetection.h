@@ -15,11 +15,7 @@ public:
 	Mat SIFTFeatures(Mat &image);
 	vector<KeyPoint> SIFTKeypoints(Mat &image);
 
-	//Perform feature detection with ORB algorithm
-	//A vector of keypoints is returned
-	//vector<KeyPoint>  ORBFeatures(Mat &image);
-
-	//Perfom the matching of keypoints over all neighbor couples, in 3 phases: 
+	//Perfom the matching of keypoints over all neighbor couples, in 3 phases:
 	//1. Matching between the different features extracted,
 	//2. Refine the matches found by selecting ones with distance less than ratio * min_distance, where ratio is a parameter 
 	//3. Filter out outlier using findHomography()
