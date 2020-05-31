@@ -295,7 +295,7 @@ int main(int argc, char **argv) {
 
             if (waitKey(pause) >= 0) {
                 
-                cout << "VIDEO PAUSED: press any key to resume the video or <ESC> to stop the video" << endl;
+                cout << "VIDEO PAUSED: press any key to resume the video or <ESC> to stop the video and exit" << endl;
                 int key = waitKey();
                 
                 if (key == 27)
@@ -307,9 +307,10 @@ int main(int argc, char **argv) {
 
     destroyAllWindows();
 
-    cout << "Termination: press <ENTER> to exit..." << endl;
-    fflush(stdin);
-    getc(stdin);
+    cout << "TERMINATION..." << endl;
+
+    return 0;
+
 }
 
 void initLab6(size_t argc, char *argv[], vector<String> &paths, int &ratio, int &wSize, int &levels) {
