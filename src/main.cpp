@@ -52,7 +52,7 @@ int main(int argc, char **argv) {
     VideoCapture cap(paths[0]);
 
     try {
-        glob(paths[1] + "/*.*", objects_names, false);        // collecting all the objects
+        glob(paths[1] + "/*.png", objects_names, false);        // collecting all the objects
     } catch (Exception &e) {
         const char *err_msg = e.what();
         cerr << "\nException caught: " << err_msg << endl;
@@ -314,8 +314,8 @@ void initLab6(size_t argc, char *argv[], vector<String> &paths, int &ratio, int 
 
     const String keys =
             "{help h usage ? |<none>| Print help message }"
-            "{@objects       |      | Input objects path }"
             "{@video         |      | Input video path}"
+            "{@objects       |      | Input objects path }"
             "{@ratio         |3     | Ratio used to select good matches}"
             "{@windowSize    |7     | Size of the window passed to LK}"
             "{@levels        |3     | Number of pyramid levels}";
@@ -327,8 +327,8 @@ void initLab6(size_t argc, char *argv[], vector<String> &paths, int &ratio, int 
         exit(1);
     }
 
-    paths.emplace_back(parser.get<String>("@objects"));
     paths.emplace_back(parser.get<String>("@video"));
+    paths.emplace_back(parser.get<String>("@objects"));
 
     ratio = parser.get<int>("@ratio");
     wSize = parser.get<int>("@windowSize");
