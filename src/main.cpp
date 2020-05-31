@@ -2,7 +2,7 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include <iostream>
-#include <opencv2/xfeatures2d.hpp>
+#include <opencv2/xfeatures2d/nonfree.hpp>
 #include <opencv2/video/tracking.hpp>
 #include <chrono>
 #include <random>
@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
     objectDetection detector;
 
     vector<Mat> obj_desc;
-    vector<vector<KeyPoint> > obj_key;
+    vector<vector<KeyPoint>> obj_key;
 
     double frames, frame_rate;
     Mat frame, frameGray;
@@ -92,14 +92,14 @@ int main(int argc, char **argv) {
         frame_key = detector.SIFTKeypoints(frame);
         frame_desc = detector.SIFTFeatures(frame);
 
-        vector<vector<DMatch> > match;
-        vector<vector<Point2f> > vertex(objects.size());
+        vector<vector<DMatch>> match;
+        vector<vector<Point2f>> vertex(objects.size());
         vector<Scalar> color;
         random_device randomDevice;
         mt19937 mt(randomDevice());
         uniform_int_distribution<int> rnd(0, 255);
         for (auto obj : objects) {
-            color.__emplace_back(Scalar(rnd(mt), rnd(mt), rnd(mt))); //random color for esch object
+            color.emplace_back(Scalar(rnd(mt), rnd(mt), rnd(mt))); //random color for esch object
         }
 
         //----------------------
@@ -121,7 +121,7 @@ int main(int argc, char **argv) {
         //-------------------------
 
         vector<Point2f> track_keypoints;
-        vector<vector<Point2f> > obj_track_points(objects.size());
+        vector<vector<Point2f>> obj_track_points(objects.size());
         vector<int> index; //where the ith object keypoints start
 
         int i = 0, j = 0;
@@ -329,8 +329,8 @@ void initLab6(size_t argc, char *argv[], vector<String> &paths, int &ratio, int 
         exit(1);
     }
 
-    paths.__emplace_back(parser.get<String>("@video"));
-    paths.__emplace_back(parser.get<String>("@objects"));
+    paths.emplace_back(parser.get<String>("@video"));
+    paths.emplace_back(parser.get<String>("@objects"));
 
     ratio = parser.get<int>("@ratio");
     wSize = parser.get<int>("@windowSize");
@@ -342,3 +342,6 @@ void initLab6(size_t argc, char *argv[], vector<String> &paths, int &ratio, int 
     }
 
 }
+
+
+
