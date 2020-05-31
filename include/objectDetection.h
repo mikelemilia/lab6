@@ -26,7 +26,7 @@ public:
 	// visual is a parameter used to decide if yuo want to visualize the matches
 	//return value for wrong matches
 	
-	vector<DMatch> matchImages(float ratio, int dist, Mat &obj_desc, Mat &frame_desc, vector<KeyPoint> &obj_key, const vector<KeyPoint> &frame_key);
+	vector<DMatch> matchImages(int ratio, int dist, Mat &obj_desc, Mat &frame_desc, vector<KeyPoint> &obj_key, const vector<KeyPoint> &frame_key);
 
     vector<Point2f> findProjection(Mat &obj, vector<Point2f> &obj_key, const vector<Point2f> &frame_key);
 

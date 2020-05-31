@@ -12,7 +12,7 @@
 using namespace cv;
 using namespace std;
 
-void initLab6(size_t argc, char *argv[], vector<String> &paths);
+void initLab6(size_t argc, char *argv[], vector<String> &paths, int &ratio, int &wSize, int &levels);
 
 int main(int argc, char **argv) {
 
@@ -30,7 +30,10 @@ int main(int argc, char **argv) {
 
     Mat vis;
 
-    float ratio = 3;  //<- EXPERIMENTS
+    int ratio; //<- EXPERIMENTS
+    int wSize;
+
+    int maxLevel;  //<- EXPERIMENTS
 
     objectDetection detector;
 
@@ -44,7 +47,7 @@ int main(int argc, char **argv) {
     //loading data
     //----------------------
 
-    initLab6(argc, argv, paths);
+    initLab6(argc, argv, paths, ratio, wSize, maxLevel);
 
     VideoCapture cap(paths[0]);
 
@@ -68,7 +71,7 @@ int main(int argc, char **argv) {
         //objects feature detection
         //----------------------
 
-        for (auto obj : objects) {
+        for (auto &obj : objects) {
             obj_key.push_back(detector.SIFTKeypoints(obj));
             obj_desc.push_back(detector.SIFTFeatures(obj));
         }
@@ -165,11 +168,11 @@ int main(int argc, char **argv) {
         vector<Mat> pyramid_prev, pyramid_next;
         Mat status;
         vector<Point2f> shift_points, shift_vertex;
-        Size wind_size = Size(5, 5); //<- EXPERIMENTS
-        int maxlevel = 3;  //<- EXPERIMENTS
+        Size wind_size = Size(wSize, wSize); //<- EXPERIMENTS
+
 
         cvtColor(frame, frameGray, COLOR_BGR2GRAY);
-        buildOpticalFlowPyramid(frameGray, pyramid_prev, wind_size, maxlevel);
+        buildOpticalFlowPyramid(frameGray, pyramid_prev, wind_size, maxLevel);
         j = 1;
         string framerate, timebar;
         double fps, avg_fps = 0;
@@ -192,7 +195,7 @@ int main(int argc, char **argv) {
             //if ((j % 2 == 0) || (j == 1)) {
             cvtColor(frame, frameGray, COLOR_BGR2GRAY);
             buildOpticalFlowPyramid(frameGray, pyramid_next, wind_size,
-                                    maxlevel); //<---- BOTTLENECK in WINDOWS, to avoid to compute more times the pyramid, we collect all the keypoints in the same vector and we use a list of indexes
+                                    maxLevel); //<---- BOTTLENECK in WINDOWS, to avoid to compute more times the pyramid, we collect all the keypoints in the same vector and we use a list of indexes
 
             //These lines are used to estimate the bottleneck of the elaboration
             auto t2 = chrono::high_resolution_clock::now();
@@ -201,7 +204,7 @@ int main(int argc, char **argv) {
             cout << "PYRAMID: " << duration * 1.0e-3 << " ms" << endl;
 
             calcOpticalFlowPyrLK(pyramid_prev, pyramid_next, track_keypoints, shift_points, status, noArray(),
-                                 wind_size, maxlevel,
+                                 wind_size, maxLevel,
                                  TermCriteria(TermCriteria::COUNT + TermCriteria::EPS, 15, 0.05));  //<- EXPERIMENTS
             t2 = chrono::high_resolution_clock::now();
             duration = chrono::duration_cast<chrono::microseconds>(t2 - tr).count();
@@ -307,12 +310,15 @@ int main(int argc, char **argv) {
     getc(stdin);
 }
 
-void initLab6(size_t argc, char *argv[], vector<String> &paths) {
+void initLab6(size_t argc, char *argv[], vector<String> &paths, int &ratio, int &wSize, int &levels) {
 
     const String keys =
             "{help h usage ? |<none>| Print help message }"
             "{@objects       |      | Input objects path }"
-            "{@video         |      | Input video path}";
+            "{@video         |      | Input video path}"
+            "{@ratio         |3     | Ratio used to select good matches}"
+            "{@windowSize    |7     | Size of the window passed to LK}"
+            "{@levels        |3     | Number of pyramid levels}";
 
     CommandLineParser parser(argc, argv, keys);
     parser.about("\nCOMPUTER VISION - LAB6\n");
@@ -323,6 +329,10 @@ void initLab6(size_t argc, char *argv[], vector<String> &paths) {
 
     paths.emplace_back(parser.get<String>("@objects"));
     paths.emplace_back(parser.get<String>("@video"));
+
+    ratio = parser.get<int>("@ratio");
+    wSize = parser.get<int>("@windowSize");
+    levels = parser.get<int>("@levels");
 
     if (!parser.check()) {
         parser.printErrors();

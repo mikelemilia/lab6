@@ -14,7 +14,6 @@ vector<KeyPoint> objectDetection::SIFTKeypoints(Mat &image) {
 	Ptr<xfeatures2d::SIFT> sift = xfeatures2d::SIFT::create();
 
 	sift->detect(image, keypoints);
-
 	return keypoints;
 
 }
@@ -38,18 +37,20 @@ vector<Point2f> objectDetection::findProjection(Mat &obj, vector<Point2f> &obj_k
 	//compute homography between frame and object
 	H = findHomography(obj_key, frame_key, RANSAC, 3, noArray(), 100);
 
-	obj_vertex[0] = Point2f(0, 0);
-	obj_vertex[1] = Point2f(obj.cols, 0);
-	obj_vertex[2] = Point2f(0, obj.rows);
-	obj_vertex[3] = Point2f(obj.cols, obj.rows);
+    obj_vertex[0] = Point2f(0, 0);
+    obj_vertex[1] = Point2f(obj.cols, 0);
+    obj_vertex[2] = Point2f(0, obj.rows);
+    obj_vertex[3] = Point2f(obj.cols, obj.rows);
 
-	perspectiveTransform(obj_vertex, vertex, H);
+	if(!H.empty()){ // check if findHomography() return an empty Mat, if it did not have enough corresponding Points
+        perspectiveTransform(obj_vertex, vertex, H);
+	}
 
 	return vertex;
 
 }
 
-vector<DMatch> objectDetection::matchImages(float ratio, int dist, Mat &obj_desc, Mat &frame_desc, vector<KeyPoint> &obj_key, const vector<KeyPoint> &frame_key) {
+vector<DMatch> objectDetection::matchImages(int ratio, int dist, Mat &obj_desc, Mat &frame_desc, vector<KeyPoint> &obj_key, const vector<KeyPoint> &frame_key) {
 
 	Mat vis, mask;
 	float min_dist = -1;
