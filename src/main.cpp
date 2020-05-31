@@ -111,7 +111,7 @@ int main(int argc, char **argv) {
 
             drawMatches(objects[i], obj_key[i], frame, frame_key, match[i], vis); //visualize each match
             namedWindow("KEYPOINTS", WINDOW_NORMAL);
-            resizeWindow("KEYPOINTS", Size(1000, 500));
+            resizeWindow("KEYPOINTS", 1000, 500);
             imshow("KEYPOINTS", vis);
             waitKey(0);
         }
@@ -273,8 +273,7 @@ int main(int argc, char **argv) {
 
             //dynamical adjustment of frame rate (when possible)
             pause = max(1, (int) (frame_rate - duration * 1.0e-3));
-            duration = duration + (long long) pause *
-                                  1.0e3; //total frame duration is execution time + pause, we neglet the least intructions
+            duration = duration + (long long) pause * 1.0e3; //total frame duration is execution time + pause, we neglet the least intructions
             //cout << "FRAME DURATION [ms]" << duration*1.0e-3 << endl;
 
             if (j % 10 != 0)
@@ -298,8 +297,8 @@ int main(int argc, char **argv) {
                 cout << "VIDEO PAUSED: press any key to resume the video or <ESC> to stop the video and exit" << endl;
                 int key = waitKey();
                 
-                if (key == 27)
-                    break;
+                if (key == 27) break;
+
             }
 
         }
