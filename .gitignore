@@ -3,3 +3,6 @@ build/
 
 # Data folders
 data/
+
+# Ignore CMakeLists
+CMakeLists.txt
