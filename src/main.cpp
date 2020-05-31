@@ -294,8 +294,10 @@ int main(int argc, char **argv) {
             imshow("TRACKING", frame);
 
             if (waitKey(pause) >= 0) {
+                
+                cout << "VIDEO PAUSED: press any key to resume the video or <ESC> to stop the video" << endl;
                 int key = waitKey();
-                cout << "Press any key to resume the video or <ESC> to stop the video" << endl;
+                
                 if (key == 27)
                     break;
             }
